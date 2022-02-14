@@ -1,4 +1,6 @@
 import * as React from 'react'
+import {useQuery, queryCache, useMutation} from 'react-query'
+import {client} from './api-client.exercise'
 
 function useSafeDispatch(dispatch) {
   const mounted = React.useRef(false)
@@ -18,7 +20,7 @@ function useSafeDispatch(dispatch) {
 //   run(fetchPokemon(pokemonName))
 // }, [pokemonName, run])
 const defaultInitialState = {status: 'idle', data: null, error: null}
-function useAsync(initialState) {
+export function useAsync(initialState) {
   const initialStateRef = React.useRef({
     ...defaultInitialState,
     ...initialState,
@@ -82,4 +84,71 @@ function useAsync(initialState) {
   }
 }
 
-export {useAsync}
+export const useBook = (bookId, user) => {
+  const result = useQuery({
+    queryKey: ['book', {bookId}],
+    queryFn: () =>
+      client(`books/${bookId}`, {token: user.token}).then(data => data.book),
+  })
+
+  return result
+}
+
+export const useBookSearch = (query, user) => {
+  const result = useQuery({
+    queryKey: ['bookSearch', {query}],
+    queryFn: () =>
+      client(`books?query=${encodeURIComponent(query)}`, {
+        token: user.token,
+      }).then(data => data.books),
+  })
+
+  return result
+}
+
+export const useListItems = user => {
+  const result = useQuery({
+    queryKey: 'list-items',
+    queryFn: () =>
+      client(`list-items`, {token: user.token}).then(data => data.listItems),
+  })
+
+  return result
+}
+
+export const useListItem = (user, bookId) => {
+  const {data: listItems} = useListItems(user)
+
+  return listItems?.find(li => li.bookId === bookId) ?? null
+}
+
+export const useUpdateListItem = (user, config = {throwOnError: true}) => {
+  const result = useMutation(
+    updates =>
+      client(`list-items/${updates.id}`, {
+        method: 'PUT',
+        data: updates,
+        token: user.token,
+      }),
+    {onSettled: () => queryCache.invalidateQueries('list-items'), ...config},
+  )
+
+  return result
+}
+
+export const useRemoveListItem = (user, config = {throwOnError: true}) => {
+  const result = useMutation(
+    ({id}) => client(`list-items/${id}`, {method: 'DELETE', token: user.token}),
+    {onSettled: () => queryCache.invalidateQueries('list-items'), ...config},
+  )
+  return result
+}
+
+export const useCreateListItem = (user, config = {throwOnError: true}) => {
+  const result = useMutation(
+    ({bookId}) => client(`list-items`, {data: {bookId}, token: user.token}),
+    {onSettled: () => queryCache.invalidateQueries('list-items'), ...config},
+  )
+
+  return result
+}
