@@ -3,7 +3,7 @@ import {jsx} from '@emotion/core'
 import * as React from 'react'
 import {FaStar} from 'react-icons/fa'
 import * as colors from 'styles/colors'
-import {useUpdateListItem} from 'utils/list-items.extra-1'
+import { useUpdateListItem } from 'utils/hooks'
 import {ErrorMessage} from './lib'
 
 const visuallyHiddenCSS = {

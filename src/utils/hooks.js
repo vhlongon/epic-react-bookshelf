@@ -141,7 +141,34 @@ export const useUpdateListItem = (user, config = {throwOnError: true}) => {
         data: updates,
         token: user.token,
       }),
-    {onSettled: () => queryCache.invalidateQueries('list-items'), ...config},
+    {
+      onMutate: async updatedListItem => {
+        await queryCache.cancelQueries('list-items')
+        // get current Data
+        const currentData = queryCache.getQueryData('list-items')
+
+        // perform optimistic update
+        queryCache.setQueryData('list-items', oldData => {
+          return oldData.map(item => {
+            if (item.id === updatedListItem.id) {
+              return {...item, ...updatedListItem}
+            }
+            return item
+          })
+        })
+
+        return currentData
+      },
+      onSettled: async (data, error, variables, onMutateValue) => {
+        // trigger refetch of list items
+        queryCache.invalidateQueries('list-items')
+      },
+      onError: (err, variables, onMutateValue) => {
+        // restore original value returned by onMutate
+        queryCache.setQueryData('list-items', onMutateValue)
+      },
+      ...config,
+    },
   )
 
   return result
