@@ -4,13 +4,12 @@ import {jsx} from '@emotion/core'
 import * as React from 'react'
 import Tooltip from '@reach/tooltip'
 import {FaSearch, FaTimes} from 'react-icons/fa'
-import {useQuery} from 'react-query'
-import {client} from 'utils/api-client'
 import * as colors from 'styles/colors'
 import {BookRow} from 'components/book-row'
 import {BookListUL, Spinner, Input} from 'components/lib'
 import bookPlaceholderSvg from 'assets/book-placeholder.svg'
 import {useBookSearch} from 'utils/hooks'
+import {queryCache} from 'react-query'
 
 const loadingBook = {
   title: 'Loading...',
@@ -29,6 +28,10 @@ const loadingBooks = Array.from({length: 10}, (v, index) => ({
 function DiscoverBooksScreen({user}) {
   const [query, setQuery] = React.useState('')
   const [queried, setQueried] = React.useState(false)
+
+  // React.useEffect(() => {
+  //   queryCache.clear()
+  // }, [])
 
   const {
     data: books = loadingBooks,
