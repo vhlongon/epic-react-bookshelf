@@ -9,7 +9,7 @@ import {BookRow} from 'components/book-row'
 import {BookListUL, Spinner, Input} from 'components/lib'
 import bookPlaceholderSvg from 'assets/book-placeholder.svg'
 import {useBookSearch} from 'utils/hooks'
-import {queryCache} from 'react-query'
+import {refetchBookSearchQuery} from '../utils/books.exercise'
 
 const loadingBook = {
   title: 'Loading...',
@@ -29,9 +29,11 @@ function DiscoverBooksScreen({user}) {
   const [query, setQuery] = React.useState('')
   const [queried, setQueried] = React.useState(false)
 
-  // React.useEffect(() => {
-  //   queryCache.clear()
-  // }, [])
+  React.useEffect(() => {
+    return () => {
+      refetchBookSearchQuery()
+    }
+  }, [])
 
   const {
     data: books = loadingBooks,
