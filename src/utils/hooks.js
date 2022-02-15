@@ -101,6 +101,17 @@ export const useBookSearch = (query, user) => {
       client(`books?query=${encodeURIComponent(query)}`, {
         token: user.token,
       }).then(data => data.books),
+    config: {
+      onSuccess: data => {
+        if (data.length <= 0) {
+          return
+        }
+
+        for (const book of data) {
+          queryCache.setQueryData(['book', {bookId: book.id}], book)
+        }
+      },
+    },
   })
 
   return result
