@@ -94,6 +94,9 @@ export const useBook = (bookId, user) => {
   return result
 }
 
+const setBookData = book => {
+  queryCache.setQueryData(['book', {bookId: book.id}], book)
+}
 export const useBookSearch = (query, user) => {
   const result = useQuery({
     queryKey: ['bookSearch', {query}],
@@ -102,13 +105,13 @@ export const useBookSearch = (query, user) => {
         token: user.token,
       }).then(data => data.books),
     config: {
-      onSuccess: data => {
-        if (data.length <= 0) {
+      onSuccess: books => {
+        if (books.length <= 0) {
           return
         }
 
-        for (const book of data) {
-          queryCache.setQueryData(['book', {bookId: book.id}], book)
+        for (const book of books) {
+          setBookData(book)
         }
       },
     },
@@ -122,6 +125,17 @@ export const useListItems = user => {
     queryKey: 'list-items',
     queryFn: () =>
       client(`list-items`, {token: user.token}).then(data => data.listItems),
+    config: {
+      onSuccess: listItems => {
+        if (listItems.length <= 0) {
+          return
+        }
+
+        for (const listItem of listItems) {
+          setBookData(listItem.book)
+        }
+      },
+    },
   })
 
   return result
@@ -131,6 +145,13 @@ export const useListItem = (user, bookId) => {
   const {data: listItems} = useListItems(user)
 
   return listItems?.find(li => li.bookId === bookId) ?? null
+}
+
+const defaultMutationConfig = {
+  onSettled: () => {
+    // trigger refetch of list items
+    queryCache.invalidateQueries('list-items')
+  },
 }
 
 export const useUpdateListItem = (user, config = {throwOnError: true}) => {
@@ -144,6 +165,7 @@ export const useUpdateListItem = (user, config = {throwOnError: true}) => {
     {
       onMutate: async updatedListItem => {
         await queryCache.cancelQueries('list-items')
+
         // get current Data
         const currentData = queryCache.getQueryData('list-items')
 
@@ -159,14 +181,12 @@ export const useUpdateListItem = (user, config = {throwOnError: true}) => {
 
         return currentData
       },
-      onSettled: async (data, error, variables, onMutateValue) => {
-        // trigger refetch of list items
-        queryCache.invalidateQueries('list-items')
-      },
+
       onError: (err, variables, onMutateValue) => {
         // restore original value returned by onMutate
         queryCache.setQueryData('list-items', onMutateValue)
       },
+      ...defaultMutationConfig,
       ...config,
     },
   )
@@ -177,7 +197,7 @@ export const useUpdateListItem = (user, config = {throwOnError: true}) => {
 export const useRemoveListItem = (user, config = {throwOnError: true}) => {
   const result = useMutation(
     ({id}) => client(`list-items/${id}`, {method: 'DELETE', token: user.token}),
-    {onSettled: () => queryCache.invalidateQueries('list-items'), ...config},
+    {...defaultMutationConfig, ...config},
   )
   return result
 }
@@ -185,7 +205,7 @@ export const useRemoveListItem = (user, config = {throwOnError: true}) => {
 export const useCreateListItem = (user, config = {throwOnError: true}) => {
   const result = useMutation(
     ({bookId}) => client(`list-items`, {data: {bookId}, token: user.token}),
-    {onSettled: () => queryCache.invalidateQueries('list-items'), ...config},
+    {...defaultMutationConfig, ...config},
   )
 
   return result
