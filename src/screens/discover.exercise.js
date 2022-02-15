@@ -31,9 +31,9 @@ function DiscoverBooksScreen({user}) {
 
   React.useEffect(() => {
     return () => {
-      refetchBookSearchQuery()
+      refetchBookSearchQuery(user)
     }
-  }, [])
+  }, [user])
 
   const {
     data: books = loadingBooks,
