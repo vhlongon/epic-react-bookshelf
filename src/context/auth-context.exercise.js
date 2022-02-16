@@ -4,6 +4,7 @@ import {useAsync} from '../utils/hooks'
 import {client} from 'utils/api-client'
 
 const AuthContext = React.createContext()
+AuthContext.displayName = 'AuthContext'
 
 async function getUser() {
   let user = null
@@ -66,7 +67,7 @@ export const useAuth = () => {
 
 export const useClient = () => {
   const {user} = useAuth()
-  const {token} = user;
+  const {token} = user
   return React.useCallback(
     (endpoint, config) => {
       return client(endpoint, {...config, token})
