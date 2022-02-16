@@ -1,10 +1,7 @@
-// 🐨 we're going to use React hooks in here now so we'll need React
-import {useQuery, queryCache} from 'react-query'
-// 🐨 get AuthContext from context/auth-context
-import {client} from './api-client'
-import bookPlaceholderSvg from 'assets/book-placeholder.svg'
-import {useAuth, useClient} from 'context/auth-context.exercise'
 import React from 'react'
+import {useQuery, queryCache} from 'react-query'
+import bookPlaceholderSvg from 'assets/book-placeholder.svg'
+import {useClient} from 'context/auth-context.exercise'
 
 const loadingBook = {
   title: 'Loading...',
