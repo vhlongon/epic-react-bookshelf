@@ -1,5 +1,10 @@
+import {queryCache} from 'react-query'
+import * as auth from 'auth-provider'
 import {server, rest} from 'test/server'
 import {client} from '../api-client'
+
+jest.mock('react-query')
+jest.mock('auth-provider')
 
 const apiURL = process.env.REACT_APP_API_URL
 
@@ -77,4 +82,44 @@ test('when data is provided, it is stringified and the method defaults to POST',
   await client(endpoint, {data: mockData})
 
   expect(request.body).toEqual(mockData)
+})
+
+test('when request fails returns promise with error data', async () => {
+  const endpoint = 'test-endpoint'
+  const errorData = {message: 'this is the response!'}
+
+  server.use(
+    rest.get(`${apiURL}/${endpoint}`, async (req, res, ctx) => {
+      return res(ctx.status(400), ctx.json(errorData))
+    }),
+  )
+
+  await expect(client(endpoint)).rejects.toEqual(errorData)
+})
+
+test('when request fails returns promise with error data', async () => {
+  const mockClearCache = jest.fn()
+
+  jest.mock('react-query', () => {
+    const reactQuery = require.requireActual('react-query')
+    return {
+      ...reactQuery,
+      queryCache: {clear: mockClearCache},
+    }
+  })
+
+  const endpoint = 'test-endpoint'
+
+  server.use(
+    rest.get(`${apiURL}/${endpoint}`, async (req, res, ctx) => {
+      return res(ctx.status(401), ctx.json({}))
+    }),
+  )
+
+  await expect(client(endpoint)).rejects.toEqual({
+    message: 'Please re-authenticate.',
+  })
+
+  expect(queryCache.clear).toHaveBeenCalled()
+  expect(auth.logout).toHaveBeenCalled()
 })
