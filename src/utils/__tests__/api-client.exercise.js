@@ -8,12 +8,6 @@ jest.mock('auth-provider')
 
 const apiURL = process.env.REACT_APP_API_URL
 
-// enable API mocking in test runs using the same request handlers
-// as for the client-side mocking.
-beforeAll(() => server.listen())
-afterAll(() => server.close())
-afterEach(() => server.resetHandlers())
-
 test('calls fetch at the endpoint with the arguments for GET requests', async () => {
   const endpoint = 'test-endpoint'
   const mockResult = {mockValue: 'VALUE'}
