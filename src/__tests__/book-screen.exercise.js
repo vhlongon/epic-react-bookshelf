@@ -131,6 +131,7 @@ describe('errors', () => {
 
     try {
       await renderBookScreen({listItem: null, book})
+
       expect(await screen.findByRole('alert')).toThrow(
         'No book found with the ID of BAD_ID',
       )
