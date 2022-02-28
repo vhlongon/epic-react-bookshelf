@@ -11,15 +11,16 @@ import {
   waitForLoadingToFinish,
 } from 'test/app-test-utils.exercise'
 
-test('renders all the book information', async () => {
-  await loginAsUser()
-
-  const book = await booksDB.create(buildBook())
+const renderBookScreen = async (options = {}) => {
+  const user = await loginAsUser(options.user)
+  const book = options.book || (await booksDB.create(buildBook()))
   redirectToBookPage(book.id)
-
-  const {getByText, getByAltText} = renderWithProviders(<App />)
-
+  const utils = renderWithProviders(<App />)
   await waitForLoadingToFinish()
+  return {user, book, ...utils}
+}
+test('renders all the book information', async () => {
+  const {book, getByText, getByAltText} = await renderBookScreen(<App />)
 
   expect(getByText(book.title)).toBeInTheDocument()
   expect(getByText(book.author)).toBeInTheDocument()
@@ -32,14 +33,7 @@ test('renders all the book information', async () => {
 })
 
 test('can create a list item for the book', async () => {
-  await loginAsUser()
-
-  const book = await booksDB.create(buildBook())
-  redirectToBookPage(book.id)
-
-  const {queryByText, getByRole, getByText} = renderWithProviders(<App />)
-
-  await waitForLoadingToFinish()
+  const {queryByText, getByRole, getByText} = await renderBookScreen(<App />)
 
   expect(queryByText(/mark as read/i)).not.toBeInTheDocument()
   expect(queryByText(/remove from list/i)).not.toBeInTheDocument()
@@ -54,14 +48,7 @@ test('can create a list item for the book', async () => {
 })
 
 test('can remove a list item for the book', async () => {
-  await loginAsUser()
-
-  const book = await booksDB.create(buildBook())
-  redirectToBookPage(book.id)
-
-  const {queryByRole, getByRole, getByText} = renderWithProviders(<App />)
-
-  await waitForLoadingToFinish()
+  const {queryByRole, getByRole, getByText} = await renderBookScreen(<App />)
 
   expect(queryByRole('button', {name: /mark as read/i})).not.toBeInTheDocument()
   expect(
@@ -80,14 +67,7 @@ test('can remove a list item for the book', async () => {
 })
 
 test('can mark a list item as read', async () => {
-  await loginAsUser()
-
-  const book = await booksDB.create(buildBook())
-  redirectToBookPage(book.id)
-
-  const {queryByRole, getByRole, getByText} = renderWithProviders(<App />)
-
-  await waitForLoadingToFinish()
+  const {queryByRole, getByRole, getByText} = await renderBookScreen(<App />)
 
   expect(queryByRole('button', {name: /mark as read/i})).not.toBeInTheDocument()
   expect(
@@ -107,14 +87,8 @@ test('can mark a list item as read', async () => {
 test('can edit a note', async () => {
   // since we have debounce on the notes input
   jest.useFakeTimers()
-  await loginAsUser()
 
-  const book = await booksDB.create(buildBook())
-  redirectToBookPage(book.id)
-
-  const {findByLabelText, getByRole} = renderWithProviders(<App />)
-
-  await waitForLoadingToFinish()
+  const {findByLabelText, getByRole} = await renderBookScreen(<App />)
 
   userEvent.click(getByRole('button', {name: /add to list/i}))
 

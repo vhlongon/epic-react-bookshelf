@@ -14,14 +14,15 @@ export const waitForLoadingToFinish = async () => {
   ])
 }
 
-export const loginAsUser = async () => {
+export const loginAsUser = async initialUser => {
   const fakeToken = 'fakeToken'
   window.localStorage.setItem(auth.localStorageKey, fakeToken)
 
-  const user = buildUser()
+  const user = initialUser || buildUser()
   await usersDB.create(user)
   const authUser = await usersDB.authenticate(user)
   window.localStorage.setItem(auth.localStorageKey, authUser.token)
+  return user
 }
 
 export const redirectToBookPage = async bookId => {
