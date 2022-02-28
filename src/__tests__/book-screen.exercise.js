@@ -105,6 +105,8 @@ test('can mark a list item as read', async () => {
 })
 
 test('can edit a note', async () => {
+  // since we have debounce on the notes input
+  jest.useFakeTimers()
   await loginAsUser()
 
   const book = await booksDB.create(buildBook())
@@ -116,6 +118,7 @@ test('can edit a note', async () => {
 
   userEvent.click(getByRole('button', {name: /add to list/i}))
 
+  // wait for loading indicator to finish
   await waitForLoadingToFinish()
 
   const notesTextArea = getByRole('textbox', {name: /note/i})
@@ -123,6 +126,7 @@ test('can edit a note', async () => {
   userEvent.type(notesTextArea, 'test note')
 
   expect(notesTextArea).toHaveValue('test note')
+  // wait for loading indicator to show since we are editing the notes
   await findByLabelText('loading')
 
   userEvent.clear(notesTextArea)

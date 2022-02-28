@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom'
 import {server} from 'test/server'
-import {queryCache} from 'react-query';
+import {queryCache} from 'react-query'
 import * as auth from 'auth-provider'
 import * as usersDB from 'test/data/users'
 import * as booksDB from 'test/data/books'
@@ -18,4 +18,8 @@ afterEach(async () => {
   await usersDB.reset()
   await booksDB.reset()
   await listItemsDB.reset()
+})
+
+beforeEach(() => {
+  jest.useRealTimers()
 })
